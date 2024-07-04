@@ -1,0 +1,45 @@
+--1)
+WITH TEMPERATURA AS(SELECT LOCALIZACAO_ID , ROUND( AVG (TEMPERATURA),2) AS MEDIA_TEMPERATURA
+FROM PF0645.CONDICOES_AMBIENTAIS
+GROUP BY LOCALIZACAO_ID)
+SELECT L.NOME AS NOME , T.MEDIA_TEMPERATURA
+FROM TEMPERATURA T
+JOIN PF0645.LOCALIZACOES L ON T.LOCALIZACAO_ID = L.LOCALIZACAO_ID;
+
+
+--2)
+SELECT L.NOME AS LOCALIZACAO , C.DATA AS DATA_CONDICAO_AMBIENTAL, P.TIPO_POLUENTE AS TIPO_POLUENTE,ROUND( AVG (TEMPERATURA),2) AS MEDIA_TEMPERATURA
+FROM PF0645.LOCALIZACOES L 
+JOIN PF0645.CONDICOES_AMBIENTAIS C ON L.LOCALIZACAO_ID = C.LOCALIZACAO_ID
+JOIN PF0645.POLUICOES P ON L.LOCALIZACAO_ID = P.LOCALIZACAO_ID
+WHERE L.NOME IN ('Baía de Guanabara' , 'Recife de Tubbataha')
+AND P.TIPO_POLUENTE IN ('Sedimentos' , 'Mercúrio')
+GROUP BY L.NOME , P.TIPO_POLUENTE, C.DATA 
+ORDER BY L.NOME , P.TIPO_POLUENTE;
+
+--3)
+INSERT first
+    WHEN concentracao > 10 THEN
+        INTO poluicoes_grave (poluicao_id,localizacao_id, data, tipo_poluente, concentracao, descricao,nome_localizacao)
+        VALUES (poluicao_id,localizacao_id, data, tipo_poluente, concentracao, descricao,nome_localizacao)
+    ELSE
+        INTO poluicoes_comum (poluicao_id,localizacao_id, data, tipo_poluente, concentracao, descricao,nome_localizacao)
+        VALUES (poluicao_id,localizacao_id, data, tipo_poluente, concentracao, descricao,nome_localizacao)
+SELECT poluicao_id ,localizacao_id, data, tipo_poluente, concentracao, descricao, nome_localizacao
+FROM (select p.id as poluicao_id ,p.localizacao_id, p.data, p.tipo_poluente, p.concentracao, p.descricao, L.nome AS nome_localizacao
+FROM PF0645.poluicoes p
+join PF0645.localizacoes l 
+on l.localizacao_id = p.localizacao_id);
+
+
+--4)
+CREATE OR REPLACE VIEW VisaoPoluicao AS
+SELECT
+    L.NOME AS NOME_LOCALIZACAO,
+    p.DATA AS DATA_OCORRENCIA,
+    p.TIPO_POLUENTE,
+    p.CONCENTRACAO
+FROM PF0645.poluicoes p
+JOIN PF0645.localizacoes L ON p.LOCALIZACAO_ID = L.LOCALIZACAO_ID
+ORDER BY p.CONCENTRACAO ASC;
+SELECT * FROM VisaoPoluicao;
